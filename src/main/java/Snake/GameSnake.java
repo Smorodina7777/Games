@@ -21,7 +21,7 @@ public class GameSnake {
     final int START_SNAKE_SIZE = 6;
     final int START_SNAKE_X = 10;
     final int START_SNAKE_Y = 10;
-    final int SHOW_DELAY = 150;
+    final int SHOW_DELAY = 250;
     final int LEFT = 37;
     final int UP = 38;
     final int RIGHT = 39;
@@ -70,6 +70,7 @@ public class GameSnake {
             if (food.isEaten()) {
                 food.next();
                 poison.next2();
+
             }
             canvasPanel.repaint();
             try {
@@ -106,6 +107,7 @@ public class GameSnake {
             return ((snake.get(0).getX() == food.getX()) && (snake.get(0).getY() == food.getY()));
         }
 
+
         void move() {
             int x = snake.get(0).getX();
             int y = snake.get(0).getY();
@@ -133,7 +135,7 @@ public class GameSnake {
             if (y < 0) {
                 y = FIELD_HEIGHT - 1;
             }
-            gameOver = isInsideSnake(x, y);
+            gameOver = isInsideSnake(x, y) || poison.isPoison(x, y);
             snake.add(0, new Point(x, y, DEFAULT_COLOR));
             if (isFood(food)) {
                 food.eat();
@@ -173,9 +175,10 @@ public class GameSnake {
         boolean isEaten() {
             return this.getX() == -1;
         }
+
         boolean isFood(int x, int y) {
-                if ((food.getX() == x) && (food.getY() == y)) {
-                    return true;
+            if ((food.getX() == x) && (food.getY() == y)) {
+                return true;
 
             }
             return false;
@@ -192,16 +195,18 @@ public class GameSnake {
         }
     }
 
-    class Poison extends Point {
-        ArrayList<Point> poisons = new ArrayList<>();
+    class Poison extends Point{
+        ArrayList<Point> poison = new ArrayList<>();
+
 
         public Poison() {
-            super(-1, -1, POISON_COLOR);
-            this.color = POISON_COLOR;
+            super(-1, -1, FOOD_COLOR);
+            this.color = FOOD_COLOR;
         }
 
+
         boolean isPoison(int x, int y) {
-            for (Point poison : poisons) {
+            for (Point poison : poison) {
                 if ((poison.getX() == x) && (poison.getY() == y)) {
                     return true;
                 }
@@ -214,10 +219,16 @@ public class GameSnake {
             do {
                 x = random.nextInt(FIELD_WIDTH - 1);
                 y = random.nextInt(FIELD_HEIGHT - 1);
-            } while (isPoison(x, y) || snake.isInsideSnake(x, y) ||food.isFood(x, y));
-            this.setXY(x, y);
-            poisons.add(new Point(x, y, color));
+            } while (isPoison(x, y) || snake.isInsideSnake(x, y) || food.isFood(x, y));
+            poison.add(new Point(x, y, POISON_COLOR));
 
+        }
+
+
+        void paint(Graphics g) {
+            for (Point point : poison) {
+                point.paint(g);
+            }
         }
     }
 
@@ -230,9 +241,9 @@ public class GameSnake {
             this.setXY(x, y);
         }
 
-        void paint(Graphics e) {
-            e.setColor(color);
-            e.fillOval(x * POINT_RADIUS, y * POINT_RADIUS, POINT_RADIUS, POINT_RADIUS);
+        void paint(Graphics g) {
+            g.setColor(color);
+            g.fillOval(x * POINT_RADIUS, y * POINT_RADIUS, POINT_RADIUS, POINT_RADIUS);
         }
 
         public int getX() {
@@ -256,6 +267,7 @@ public class GameSnake {
             super.paint(g);
             snake.paint(g);
             food.paint(g);
+            poison.paint(g);
             if (gameOver) {
                 g.setColor(Color.red);
                 g.setFont(new Font("Arial", Font.BOLD, 40));
